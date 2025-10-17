@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Code Indenter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        textarea {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            font-family: monospace;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTML Code Indenter</h1>
+    <p>Enter your HTML code in the box below and click the button to indent it.</p>
+    
+    <textarea id="inputCode" rows="10" cols="50" placeholder="Paste your unindented HTML code here...">
+&lt;div&gt;
+&lt;p&gt;Hello&lt;/p&gt;
+&lt;div&gt;&lt;span&gt;World&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;
+    </textarea>
+    
+    <button id="indentButton">Indent Code</button>
+    
+    <textarea id="outputCode" rows="10" cols="50" placeholder="Indented code will appear here..." readonly></textarea>
+    
+    <script>
+        // Add event listener to the button
+        document.getElementById('indentButton').addEventListener('click', function() {
+            const inputCode = document.getElementById('inputCode').value;
+            const indentedCode = indentHTML(inputCode);  // Call the indenter function
+            document.getElementById('outputCode').value = indentedCode;
+        });
+        
+        // Simple function to indent HTML code
+        function indentHTML(code) {
+            const lines = code.split('\n');  // Split the code into lines
+            let indentLevel = 0;  // Track the current indentation level
+            const indentedLines = [];  // Array to store indented lines
+            
+            lines.forEach(line => {
+                let trimmedLine = line.trim();  // Remove leading/trailing whitespace
+                
+                // Decrease indent level for closing tags
+                if (trimmedLine.startsWith('</')) {
+                    indentLevel = Math.max(0, indentLevel - 1);  // Don't go below 0
+                }
+                
+                // Add indentation to the line
+                const indentedLine = '    '.repeat(indentLevel) + trimmedLine;  // Use 4 spaces per level
+                
+                indentedLines.push(indentedLine);  // Add to array
+                
+                // Increase indent level for opening tags (if not self-closing)
+                if (trimmedLine.startsWith('<') && !trimmedLine.startsWith('</') && !trimmedLine.endsWith('/>')) {
+                    indentLevel += 1;
+                }
+            });
+            
+            return indentedLines.join('\n');  // Join lines back into a string
+        }
+    </script>
+</body>
+</html>
