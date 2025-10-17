@@ -1,0 +1,108 @@
+const canvas = document.getElementById('drawingCanvas');
+const ctx = canvas.getContext('2d');
+let drawing = false; // Track if the user is drawing
+let currentTool = 'pencil'; // Default tool
+let brushSize = 5; // Default size
+let color = '#000000'; // Default color
+let undoStack = []; // Stack for undo
+let redoStack = []; // Stack for redo
+
+// Save the current canvas state
+function saveState() {
+    undoStack.push(canvas.toDataURL());
+    redoStack = []; // Clear redo stack on new action
+}
+
+// Event listeners for tools
+document.getElementById('pencil').addEventListener('click', () => currentTool = 'pencil');
+document.getElementById('brush').addEventListener('click', () => currentTool = 'brush');
+document.getElementById('eraser').addEventListener('click', () => currentTool = 'eraser');
+document.getElementById('line').addEventListener('click', () => currentTool = 'line');
+document.getElementById('rectangle').addEventListener('click', () => currentTool = 'rectangle');
+document.getElementById('circle').addEventListener('click', () => currentTool = 'circle');
+document.getElementById('clear').addEventListener('click', () => {
+    saveState(); // Save before clearing
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+document.getElementById('undo').addEventListener('click', undo);
+document.getElementById('redo').addEventListener('click', redo);
+document.getElementById('colorPicker').addEventListener('change', (e) => color = e.target.value);
+document.getElementById('brushSize').addEventListener('change', (e) => brushSize = e.target.value);
+
+// Mouse event handlers
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+canvas.addEventListener('mouseout', stopDrawing);
+
+function startDrawing(e) {
+    drawing = true;
+    saveState(); // Save state before starting a new drawing
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+}
+
+function draw(e) {
+    if (!drawing) return;
+    ctx.lineWidth = brushSize;
+    ctx.strokeStyle = (currentTool === 'eraser' ? '#ffffff' : color); // Eraser uses white
+    ctx.lineCap = 'round';
+
+    if (currentTool === 'pencil' || currentTool === 'brush' || currentTool === 'eraser') {
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+    } else if (currentTool === 'line') {
+        // For line, we'll draw on mouseup for simplicity (not real-time)
+    } else if (currentTool === 'rectangle') {
+        // Placeholder: Draw on mouseup
+    } else if (currentTool === 'circle') {
+        // Placeholder: Draw on mouseup
+    }
+}
+
+function stopDrawing(e) {
+    if (drawing) {
+        drawing = false;
+        if (currentTool === 'line') {
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+        } else if (currentTool === 'rectangle') {
+            const x = e.offsetX;
+            const y = e.offsetY;
+            const startX = ctxStartX; // Assume you track start position
+            const startY = ctxStartY;
+            ctx.rect(startX, startY, x - startX, y - startY);
+            ctx.stroke();
+        } else if (currentTool === 'circle') {
+            // Similar logic for circle
+        }
+        ctx.closePath();
+    }
+}
+
+// Undo function
+function undo() {
+    if (undoStack.length > 0) {
+        redoStack.push(canvas.toDataURL());
+        const previousState = undoStack.pop();
+        const img = new Image();
+        img.src = previousState;
+        img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+    }
+}
+
+// Redo function
+function redo() {
+    if (redoStack.length > 0) {
+        undoStack.push(canvas.toDataURL());
+        const nextState = redoStack.pop();
+        const img = new Image();
+        img.src = nextState;
+        img.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+        };
+    }
